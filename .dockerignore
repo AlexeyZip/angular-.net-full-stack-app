@@ -1,0 +1,15 @@
+# Build context for apps/web/Dockerfile is the repository root; keep it small and secret-free.
+.git/
+.github/
+.angular/
+.nx/
+.vscode/
+.cursor/
+node_modules/
+dist/
+coverage/
+services/
+docs/
+**/*.env
+.env*
+!.env.example

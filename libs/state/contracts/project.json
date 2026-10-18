@@ -1,0 +1,19 @@
+{
+  "name": "state-contracts",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/state/contracts/src",
+  "prefix": "shop",
+  "projectType": "library",
+  "tags": ["type:state-contracts"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": [
+        "{options.reportsDirectory}"
+      ],
+      "options": {
+        "reportsDirectory": "coverage/libs/state/contracts"
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="header">
+  <div class="shop-container header__inner">
+    <a class="header__logo" routerLink="/">Northwind<span>Shop</span></a>
+
+    <form class="header__search" role="search" (submit)="$event.preventDefault(); search(searchInput.value)">
+      <label class="shop-visually-hidden" for="global-search">Search products</label>
+      <input #searchInput id="global-search" class="shop-input" type="search" placeholder="Search products…" maxlength="100" />
+    </form>
+
+    <button
+      type="button"
+      class="shop-icon-button header__menu-toggle"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="main-nav"
+      (click)="menuOpen.set(!menuOpen())"
+    >
+      <span aria-hidden="true">☰</span><span class="shop-visually-hidden">Menu</span>
+    </button>
+
+    <nav id="main-nav" class="header__nav" [class.header__nav--open]="menuOpen()" aria-label="Main">
+      <a routerLink="/products" routerLinkActive="active" (click)="menuOpen.set(false)">Catalog</a>
+      @if (session.isAuthenticated()) {
+        <a routerLink="/wishlist" routerLinkActive="active" (click)="menuOpen.set(false)">
+          Wishlist <span class="count" data-testid="wishlist-count">{{ wishlist.count() }}</span>
+        </a>
+        <a routerLink="/orders" routerLinkActive="active" (click)="menuOpen.set(false)">Orders</a>
+      }
+      <a routerLink="/cart" routerLinkActive="active" (click)="menuOpen.set(false)" [attr.aria-label]="'Cart, ' + cart.itemCount() + ' items'">
+        Cart <span class="count" data-testid="cart-count">{{ cart.itemCount() }}</span>
+      </a>
+      @if (session.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active" (click)="menuOpen.set(false)">Admin</a>
+      }
+      @if (session.user(); as user) {
+        <a routerLink="/account" routerLinkActive="active" (click)="menuOpen.set(false)">{{ user.fullName }}</a>
+        <button type="button" class="link-button" (click)="logout()">Sign out</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active" (click)="menuOpen.set(false)">Sign in</a>
+      }
+      <shop-theme-toggle />
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="shop-container main" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  <div class="shop-container footer__inner">
+    <span>Full-stack reference platform · Angular + ASP.NET Core + PostgreSQL</span>
+    <span class="footer__variant" data-testid="state-variant">State: {{ stateVariant === 'ngrx' ? 'NgRx' : 'Signals' }}</span>
+  </div>
+</footer>
+
+<shop-toast-outlet />

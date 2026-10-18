@@ -1,0 +1,14 @@
+---
+description: Session workflow, verification honesty and progress tracking for this repository
+alwaysApply: true
+---
+
+# Project workflow
+
+- Start from `docs/project/PROGRESS.md` ("Next task") and `IMPLEMENTATION_BACKLOG.md`; inspect code before proposing replacements.
+- Small, coherent vertical slices: model/migration → endpoint → API client → state → UI → tests → docs.
+- Verification is evidence: only report a check as passing if you ran it in this session. Otherwise say "not run" and why.
+- After a milestone update `PROGRESS.md` (commands + results), backlog status, `KNOWN_ISSUES.md`, `REQUIREMENTS_TRACEABILITY.md`.
+- A backlog task is `DONE` only when its acceptance criteria were verified.
+- Do not commit, reset, delete others' work, provision cloud resources or add paid services unless the user asks.
+- Answer the user in Russian (user preference); code, identifiers and repository docs stay in English.

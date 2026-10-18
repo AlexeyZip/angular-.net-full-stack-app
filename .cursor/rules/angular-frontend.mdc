@@ -1,0 +1,26 @@
+---
+description: Angular component, routing and data-access conventions for apps/web and shared libraries
+globs: apps/web/src/**/*.ts,libs/shared/**/*.ts
+alwaysApply: false
+---
+
+# Angular conventions
+
+- Standalone components, `ChangeDetectionStrategy.OnPush`, selector prefix `shop-` (lint enforced). The app is zoneless:
+  UI updates come from signals, not from zone.js.
+- Inputs/outputs: `input()`, `input.required()`, `output()`, `model()`. Route params arrive as inputs
+  (`withComponentInputBinding`). Local async data: `toSignal(source$.pipe(switchMap(... loadable(api.call()))))`
+  with `Loadable<T>` from `@shop/shared/data-access` — always render loading, empty and error states.
+- Templates: `@if/@for/@switch/@defer`, `track` by id, self-closing tags, labels bound to every control, no `[innerHTML]`.
+- Forms: typed reactive forms via `NonNullableFormBuilder`; show errors with `<shop-field-error>`; map API `code`
+  values to controls (e.g. `email_taken` → `server` error) instead of parsing messages.
+- Features inject `CatalogStore`/`CartStore`/`WishlistStore` contracts — never `@shop/state/signals|ngrx` (lint enforced).
+- HTTP only through `libs/shared/data-access` clients; errors normalised with `toApiError`.
+- Derived values: `computed`. `effect` only for side effects (storage, applying a loaded entity to a form).
+- Lazy routes with `loadComponent`/`loadChildren` and a `title`; admin is behind `canMatch: [adminGuard]` (UX only —
+  the API enforces authorization).
+
+```ts
+// ✅ component-local async state
+protected readonly state = toSignal(toObservable(this.slug).pipe(switchMap((slug) => loadable(this.api.getProduct(slug)))), { initialValue: LOADING });
+```

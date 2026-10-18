@@ -1,0 +1,42 @@
+# Node / Nx / Angular
+node_modules/
+dist/
+tmp/
+out-tsc/
+coverage/
+.nx/cache/
+.nx/workspace-data/
+.angular/
+*.tsbuildinfo
+npm-debug.log*
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+TestResults/
+.vs/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+
+# IDE / OS
+.idea/
+.DS_Store
+Thumbs.db
+
+.angular
+
+__screenshots__/
+vitest.config.*.timestamp*
+.vitest

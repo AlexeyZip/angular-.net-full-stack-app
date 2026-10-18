@@ -1,0 +1,25 @@
+{
+  "name": "web-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/web-e2e/src",
+  "tags": ["type:e2e"],
+  "implicitDependencies": ["web"],
+  "targets": {
+    "e2e": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "playwright test --config apps/web-e2e/playwright.config.ts"
+      },
+      "configurations": {
+        "signals": {
+          "command": "playwright test --config apps/web-e2e/playwright.config.ts --project=signals"
+        },
+        "ngrx": {
+          "command": "playwright test --config apps/web-e2e/playwright.config.ts --project=ngrx"
+        }
+      }
+    }
+  }
+}

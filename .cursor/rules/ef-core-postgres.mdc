@@ -1,0 +1,22 @@
+---
+description: EF Core 10 + PostgreSQL modelling, migrations, transactions and concurrency rules
+globs: services/api/src/Shop.Api/Infrastructure/Persistence/**/*.cs,services/api/src/Shop.Api/Domain/**/*.cs
+alwaysApply: false
+---
+
+# EF Core and PostgreSQL
+
+- Mapping lives in `EntityConfigurations.cs` (snake_case naming convention). Money is `numeric(12,2)`; enforce
+  invariants twice: in the domain and with database `CHECK` constraints (`stock_quantity >= 0`, rating 1..5).
+- Schema changes only via migrations:
+  `dotnet ef migrations add <Name> --project src/Shop.Api --output-dir Infrastructure/Persistence/Migrations`.
+  Review the generated SQL (`dotnet ef migrations script --idempotent`). Never edit an applied migration; no
+  destructive changes without a data-migration plan. Finish with `has-pending-model-changes`.
+- Reads: `AsNoTracking()` + projection to DTOs with `Select`; paginate on the server (`Skip/Take` with a stable
+  order, total via `CountAsync`). Escape `%`/`_` before `ILike`.
+- Counters that change concurrently (stock, ratings) use atomic relative `ExecuteUpdateAsync`
+  (`SET x = x - n WHERE x >= n`) inside a transaction — never read-modify-write.
+- Optimistic concurrency: `Product.Version` (explicit token, incremented only by detail edits); orders use `xmin`.
+  A `DbUpdateConcurrencyException` becomes 409 `concurrency_conflict`.
+- Unique violations are detected with `ex.IsUniqueViolation("<index name>")` (see `PostgresErrors.cs`).
+- Lock rows in a consistent order (sorted product ids) to avoid deadlocks.

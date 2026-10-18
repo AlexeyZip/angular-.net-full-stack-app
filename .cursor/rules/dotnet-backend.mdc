@@ -1,0 +1,26 @@
+---
+description: ASP.NET Core and C# conventions for the Shop.Api service
+globs: services/api/**/*.cs
+alwaysApply: false
+---
+
+# ASP.NET Core / C# conventions
+
+- Layout: `Features/<Module>/` = `*Controller.cs` (thin: bind, authorize, call service) + `*Service.cs` (use case) +
+  `*Contracts.cs` (request/response records with DataAnnotations). `Domain/` entities enforce invariants in
+  constructors/methods with private setters. `Infrastructure/` holds EF Core, auth, error handling, audit.
+- Services are `sealed` classes with primary constructors, registered `Scoped`; inject `TimeProvider`, never call
+  `DateTime.UtcNow`. Pass `CancellationToken` through every async call.
+- Business errors: throw `AppException` (`NotFound`, `Conflict`, `BusinessRule`, ...) with a stable snake_case `code`;
+  `AppExceptionHandler` turns it into ProblemDetails with `code` and `traceId`. Do not return ad-hoc error objects.
+- Authorization on the controller/action: `[Authorize]`, `[Authorize(Policy = ShopClaims.AdminPolicy)]`. User id
+  comes from the token (`User.GetRequiredUserId()`), never from the request body.
+- Admin mutations write an audit entry via `AuditLogger` in the same `SaveChanges`.
+- Nullable enabled and warnings are errors — fix warnings, do not suppress them without a stated reason.
+- Verify: `dotnet build Shop.sln`, `dotnet test --project tests/Shop.Api.UnitTests`, integration tests when a DB exists.
+
+```csharp
+// ✅
+throw AppException.Conflict("insufficient_stock", "Not enough stock for some items in your cart.", extensions);
+// ❌ return BadRequest("not enough stock");
+```

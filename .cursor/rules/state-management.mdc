@@ -1,0 +1,22 @@
+---
+description: Rules for the dual Signals / NgRx state implementations and their shared contracts
+globs: libs/state/**/*.ts,apps/web/src/app/state/**/*.ts
+alwaysApply: false
+---
+
+# Dual state management
+
+- `libs/state/contracts` defines abstract classes (DI tokens), shared pure helpers and the contract test suite.
+  Both `libs/state/signals` and `libs/state/ngrx` implement the **same** contract; they never import each other.
+- Any behaviour change: update the contract (if needed) → shared helper → **both** implementations →
+  `src/testing/state-contract-suite.ts` → run `npx nx run-many -t test -p state-signals state-ngrx state-contracts`.
+- Business logic that must match in both variants belongs in shared pure functions (`addCartLine`,
+  `applyFilterPatch`, `cartForIdentityChange`), not duplicated.
+- Request races: `switchMap` for "latest wins" (catalog, quotes); debounce with `switchMap(() => timer(ms).pipe(...))`
+  so a newer change also cancels the in-flight request.
+- Optimistic updates roll back **only the failed item**, never a whole snapshot.
+- NgRx: `createFeature` + `createReducer`, `createActionGroup`, functional effects, `@ngrx/entity` for collections,
+  selectors exposed to components via `store.selectSignal`. Reducers stay pure.
+- Signals: private `signal<State>()`, public `computed()` reads, commands as methods, RxJS only for async orchestration.
+- Never store tokens, passwords or personal data in either store.
+- Variant selection happens only in `apps/web/src/app/state/state.providers*.ts` via build `fileReplacements`.

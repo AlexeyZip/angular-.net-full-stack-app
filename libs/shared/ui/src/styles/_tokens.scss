@@ -1,0 +1,72 @@
+// Design tokens as CSS custom properties: themable at runtime (unlike SCSS variables, which are compile-time).
+// Components only ever reference var(--shop-*) - never raw colors - so a theme is just another token set.
+
+@mixin light-theme {
+  --shop-color-bg: #f7f7fb;
+  --shop-color-surface: #ffffff;
+  --shop-color-surface-muted: #f0f1f6;
+  --shop-color-border: #dcdfe8;
+  --shop-color-text: #1c1f2a;
+  --shop-color-text-muted: #5b6275;
+  --shop-color-primary: #4338ca;
+  --shop-color-primary-hover: #3730a3;
+  --shop-color-on-primary: #ffffff;
+  --shop-color-danger: #b42318;
+  --shop-color-success: #067647;
+  --shop-color-warning: #b54708;
+  --shop-color-focus: #f59e0b;
+  --shop-shadow-card: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+  color-scheme: light;
+}
+
+@mixin dark-theme {
+  --shop-color-bg: #0f1117;
+  --shop-color-surface: #181b24;
+  --shop-color-surface-muted: #222633;
+  --shop-color-border: #2f3445;
+  --shop-color-text: #eceef4;
+  --shop-color-text-muted: #a3a9ba;
+  --shop-color-primary: #8b85ff;
+  --shop-color-primary-hover: #a5a0ff;
+  --shop-color-on-primary: #0f1117;
+  --shop-color-danger: #f97066;
+  --shop-color-success: #47cd89;
+  --shop-color-warning: #fdb022;
+  --shop-color-focus: #fbbf24;
+  --shop-shadow-card: 0 1px 3px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
+:root {
+  --shop-font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --shop-font-size-sm: 0.875rem;
+  --shop-font-size-md: 1rem;
+  --shop-font-size-lg: 1.25rem;
+  --shop-font-size-xl: 1.75rem;
+  --shop-space-1: 0.25rem;
+  --shop-space-2: 0.5rem;
+  --shop-space-3: 0.75rem;
+  --shop-space-4: 1rem;
+  --shop-space-6: 1.5rem;
+  --shop-space-8: 2rem;
+  --shop-radius-sm: 6px;
+  --shop-radius-md: 10px;
+  --shop-radius-lg: 16px;
+  --shop-content-width: 1200px;
+
+  @include light-theme;
+
+  @media (prefers-color-scheme: dark) {
+    &:not([data-theme='light']) {
+      @include dark-theme;
+    }
+  }
+
+  &[data-theme='dark'] {
+    @include dark-theme;
+  }
+}
+
+// Breakpoints (compile-time, used in media queries).
+$shop-breakpoint-md: 768px;
+$shop-breakpoint-lg: 1024px;

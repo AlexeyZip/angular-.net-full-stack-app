@@ -1,0 +1,21 @@
+---
+description: Security, authentication and HTTP API design rules for endpoints, auth code and the HTTP layer
+globs: services/api/src/Shop.Api/Features/**/*.cs,services/api/src/Shop.Api/Infrastructure/Auth/**/*.cs,libs/shared/data-access/src/lib/**/*.ts
+alwaysApply: false
+---
+
+# Security and API design
+
+- Never trust the client for prices, totals, stock, user id or role. Recompute on the server (`Pricing.Calculate`).
+- Auth model: short-lived JWT access token kept **in memory only**; refresh token in the HttpOnly, `SameSite=Strict`,
+  path-scoped cookie `shop_refresh`, rotated on every use with reuse detection. Cookie endpoints require the
+  `X-Shop-Client` header (CSRF defence). Do not move tokens into storage or global state.
+- Every new endpoint: explicit `[Authorize]`/policy or a deliberate `[AllowAnonymous]`; owner checks in the query
+  (`WHERE user_id = @current`) so other users' resources return 404, not 403.
+- Validation: DataAnnotations on request records + domain invariants; invalid input → 400 ValidationProblem.
+- REST shape: nouns, plural resources, `201` + `Location` on create, `409` for conflicts, `422` for business-rule
+  violations, `402/503` only from the payment simulator. Errors are ProblemDetails with `code` and `traceId`.
+- Unsafe operations that clients may retry (checkout) require an `Idempotency-Key`.
+- Rate-limit auth and checkout (`RateLimitPolicies`). Generic messages for login failures (no user enumeration).
+- Secrets only from configuration/environment; repository values must be `DEV-ONLY-` placeholders. Never log tokens,
+  passwords or full card-like data.

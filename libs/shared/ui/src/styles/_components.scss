@@ -1,0 +1,488 @@
+// Global styles for the shared UI components. Kept global (not component-encapsulated) because they
+// are a small design system applied through classes, e.g. .shop-table for plain semantic tables.
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--shop-font-sans);
+  font-size: var(--shop-font-size-md);
+  line-height: 1.5;
+  color: var(--shop-color-text);
+  background: var(--shop-color-bg);
+}
+
+a {
+  color: var(--shop-color-primary);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 var(--shop-space-4);
+}
+
+:focus-visible {
+  outline: 3px solid var(--shop-color-focus);
+  outline-offset: 2px;
+}
+
+.shop-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.shop-container {
+  max-width: var(--shop-content-width);
+  margin: 0 auto;
+  padding: 0 var(--shop-space-4);
+}
+
+.shop-card {
+  background: var(--shop-color-surface);
+  border: 1px solid var(--shop-color-border);
+  border-radius: var(--shop-radius-md);
+  box-shadow: var(--shop-shadow-card);
+  padding: var(--shop-space-4);
+}
+
+.shop-muted {
+  color: var(--shop-color-text-muted);
+}
+
+// ---------- Button ----------
+.shop-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--shop-space-2);
+  min-height: 44px; // touch target size
+  padding: 0 var(--shop-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--shop-radius-sm);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: var(--shop-color-primary);
+    color: var(--shop-color-on-primary);
+
+    &:hover:not([disabled]) {
+      background: var(--shop-color-primary-hover);
+    }
+  }
+
+  &--secondary {
+    background: var(--shop-color-surface);
+    color: var(--shop-color-text);
+    border-color: var(--shop-color-border);
+
+    &:hover:not([disabled]) {
+      background: var(--shop-color-surface-muted);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--shop-color-primary);
+  }
+
+  &--danger {
+    background: var(--shop-color-danger);
+    color: #fff;
+  }
+
+  &--sm {
+    min-height: 34px;
+    padding: 0 var(--shop-space-3);
+    font-size: var(--shop-font-size-sm);
+  }
+
+  &--block {
+    width: 100%;
+  }
+}
+
+.shop-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--shop-color-border);
+  border-radius: 50%;
+  background: var(--shop-color-surface);
+  color: var(--shop-color-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+// ---------- Spinner ----------
+.shop-spinner {
+  display: inline-flex;
+  align-items: center;
+
+  &__circle {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--shop-color-border);
+    border-top-color: var(--shop-color-primary);
+    border-radius: 50%;
+    animation: shop-spin 800ms linear infinite;
+  }
+
+  &--sm &__circle {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+  }
+}
+
+@keyframes shop-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-spinner__circle {
+    animation-duration: 3s;
+  }
+}
+
+// ---------- Empty / error states ----------
+.shop-state {
+  display: block;
+  text-align: center;
+  padding: var(--shop-space-8) var(--shop-space-4);
+
+  &__title {
+    font-size: var(--shop-font-size-lg);
+  }
+
+  &__message {
+    color: var(--shop-color-text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--shop-space-2);
+  }
+
+  &--error &__title {
+    color: var(--shop-color-danger);
+  }
+}
+
+// ---------- Forms ----------
+.shop-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--shop-space-1);
+  margin-bottom: var(--shop-space-4);
+
+  label {
+    font-weight: 600;
+    font-size: var(--shop-font-size-sm);
+  }
+
+  &__hint {
+    font-size: var(--shop-font-size-sm);
+    color: var(--shop-color-text-muted);
+    margin: 0;
+  }
+
+  &__error {
+    font-size: var(--shop-font-size-sm);
+    color: var(--shop-color-danger);
+    margin: 0;
+  }
+}
+
+.shop-input,
+.shop-select,
+.shop-textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--shop-space-2) var(--shop-space-3);
+  border: 1px solid var(--shop-color-border);
+  border-radius: var(--shop-radius-sm);
+  background: var(--shop-color-surface);
+  color: var(--shop-color-text);
+  font: inherit;
+
+  &.ng-invalid.ng-touched {
+    border-color: var(--shop-color-danger);
+  }
+}
+
+.shop-alert {
+  padding: var(--shop-space-3) var(--shop-space-4);
+  border-radius: var(--shop-radius-sm);
+  border: 1px solid var(--shop-color-danger);
+  color: var(--shop-color-danger);
+  background: color-mix(in srgb, var(--shop-color-danger) 8%, transparent);
+  margin-bottom: var(--shop-space-4);
+
+  &--info {
+    border-color: var(--shop-color-primary);
+    color: var(--shop-color-text);
+    background: color-mix(in srgb, var(--shop-color-primary) 8%, transparent);
+  }
+}
+
+// ---------- Quantity stepper ----------
+.shop-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--shop-color-border);
+  border-radius: var(--shop-radius-sm);
+  overflow: hidden;
+
+  &__button {
+    width: 40px;
+    border: 0;
+    background: var(--shop-color-surface-muted);
+    color: var(--shop-color-text);
+    font-size: 1.2rem;
+    cursor: pointer;
+
+    &[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  &__input {
+    width: 3.5rem;
+    border: 0;
+    text-align: center;
+    font: inherit;
+    background: var(--shop-color-surface);
+    color: var(--shop-color-text);
+    -moz-appearance: textfield;
+    appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+    }
+  }
+}
+
+// ---------- Pagination ----------
+.shop-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--shop-space-1);
+  margin: var(--shop-space-6) 0;
+
+  &__item {
+    min-width: 40px;
+    height: 40px;
+    border: 1px solid var(--shop-color-border);
+    border-radius: var(--shop-radius-sm);
+    background: var(--shop-color-surface);
+    color: var(--shop-color-text);
+    cursor: pointer;
+
+    &--active {
+      background: var(--shop-color-primary);
+      border-color: var(--shop-color-primary);
+      color: var(--shop-color-on-primary);
+    }
+
+    &[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  &__gap {
+    align-self: center;
+    padding: 0 var(--shop-space-1);
+  }
+}
+
+// ---------- Rating ----------
+.shop-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--shop-space-1);
+  color: var(--shop-color-border);
+
+  &__star--on {
+    color: #f5a524;
+  }
+
+  &__count {
+    color: var(--shop-color-text-muted);
+    font-size: var(--shop-font-size-sm);
+  }
+}
+
+// ---------- Product image ----------
+.shop-product-image {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--shop-radius-sm);
+  overflow: hidden;
+  background: var(--shop-color-surface-muted);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+}
+
+// ---------- Toasts ----------
+.shop-toasts {
+  position: fixed;
+  right: var(--shop-space-4);
+  bottom: var(--shop-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--shop-space-2);
+  z-index: 1000;
+  max-width: min(420px, calc(100vw - 2rem));
+}
+
+.shop-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--shop-space-3);
+  padding: var(--shop-space-3) var(--shop-space-4);
+  border-radius: var(--shop-radius-sm);
+  background: var(--shop-color-surface);
+  border-left: 4px solid var(--shop-color-primary);
+  box-shadow: var(--shop-shadow-card);
+
+  &--success {
+    border-left-color: var(--shop-color-success);
+  }
+
+  &--error {
+    border-left-color: var(--shop-color-danger);
+  }
+
+  &__close {
+    border: 0;
+    background: transparent;
+    color: var(--shop-color-text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+}
+
+// ---------- Dialog ----------
+.shop-dialog {
+  border: 1px solid var(--shop-color-border);
+  border-radius: var(--shop-radius-md);
+  background: var(--shop-color-surface);
+  color: var(--shop-color-text);
+  padding: var(--shop-space-6);
+  max-width: min(480px, calc(100vw - 2rem));
+
+  &::backdrop {
+    background: rgb(0 0 0 / 45%);
+  }
+
+  &__title {
+    font-size: var(--shop-font-size-lg);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--shop-space-2);
+    margin-top: var(--shop-space-6);
+  }
+}
+
+// ---------- Tables ----------
+.shop-table-wrapper {
+  overflow-x: auto;
+}
+
+.shop-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--shop-color-surface);
+
+  th,
+  td {
+    padding: var(--shop-space-3);
+    border-bottom: 1px solid var(--shop-color-border);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    font-size: var(--shop-font-size-sm);
+    color: var(--shop-color-text-muted);
+    font-weight: 600;
+  }
+
+  .shop-table__number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ---------- Badges ----------
+.shop-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--shop-color-surface-muted);
+  color: var(--shop-color-text);
+
+  &--Paid {
+    background: color-mix(in srgb, var(--shop-color-primary) 18%, transparent);
+  }
+
+  &--Shipped {
+    background: color-mix(in srgb, var(--shop-color-warning) 22%, transparent);
+  }
+
+  &--Delivered {
+    background: color-mix(in srgb, var(--shop-color-success) 22%, transparent);
+  }
+
+  &--Cancelled {
+    background: color-mix(in srgb, var(--shop-color-danger) 18%, transparent);
+  }
+}

@@ -1,0 +1,20 @@
+---
+description: Unit, integration and end-to-end testing conventions
+globs: **/*.spec.ts,services/api/tests/**/*.cs,apps/web-e2e/**/*.ts
+alwaysApply: false
+---
+
+# Testing
+
+- Name tests after behaviour (`Concurrent_buyers_cannot_oversell_the_last_units`, `'rolls back only the failed item'`).
+  Assert outcomes users or callers can observe; avoid asserting implementation details or snapshots.
+- Frontend unit tests: Vitest + TestBed, `provideHttpClientTesting` with `HttpTestingController`; zoneless — use
+  `TestBed.tick()` / `fixture.whenStable()`. Test hosts must be `OnPush`. No non-null assertions; use helpers.
+- State behaviour is tested once in `libs/state/contracts/src/testing/state-contract-suite.ts` and executed for both
+  variants. Add NgRx-specific tests only for reducers/selectors.
+- Backend unit tests (`Shop.Api.UnitTests`): pure domain/pricing logic, no database, no Docker.
+- Backend integration tests (`Shop.Api.IntegrationTests`): `WebApplicationFactory` + real PostgreSQL (Testcontainers or
+  `SHOP_TEST_CONNECTION_STRING` pointing at a database whose name contains `test`). Never mock EF Core.
+- E2E (`apps/web-e2e`): arrange data through the API helpers (`support/api.ts`) with unique names; select by role/label
+  first, `data-testid` second; every test must pass in both projects (`signals`, `ngrx`). Never add fixed sleeps.
+- A failing test is information: fix the code or the test's wrong assumption, never weaken the assertion to go green.
