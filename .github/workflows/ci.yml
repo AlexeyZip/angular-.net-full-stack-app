@@ -37,6 +37,8 @@ jobs:
         run: npx nx run web:build:production
       - name: Build NgRx variant
         run: npx nx run web:build:production-ngrx
+      - name: Build assistant microfrontend
+        run: npx nx run assistant-mfe:build:production
       - name: Signals bundle must not contain NgRx
         run: |
           if grep -rl "@ngrx/store" dist/apps/web/browser --include=*.js; then
@@ -64,6 +66,26 @@ jobs:
         run: dotnet test --project tests/Shop.Api.IntegrationTests -c Release --no-build
       - name: Migrations are in sync with the model
         run: dotnet ef migrations has-pending-model-changes --project src/Shop.Api --no-build --configuration Release
+
+  notifications:
+    name: Notifications service (build, tests, migrations)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/notifications
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: services/notifications/global.json
+      - run: dotnet tool restore
+      - run: dotnet build Notifications.sln -c Release
+      # Testcontainers PostgreSQL; includes the consumer side of the services/contracts samples.
+      - name: Tests (real PostgreSQL)
+        run: dotnet test --project tests/Shop.Notifications.Tests -c Release --no-build
+      - name: Migrations are in sync with the model
+        run: dotnet ef migrations has-pending-model-changes --project src/Shop.Notifications --no-build --configuration Release
 
   e2e:
     name: E2E (Playwright, both state variants)

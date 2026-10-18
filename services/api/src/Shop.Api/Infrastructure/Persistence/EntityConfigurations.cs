@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shop.Api.Domain;
+using Shop.Api.Infrastructure.Messaging;
 
 namespace Shop.Api.Infrastructure.Persistence;
 
@@ -166,5 +167,24 @@ internal sealed class AuditLogEntryConfiguration : IEntityTypeConfiguration<Audi
         builder.Property(a => a.Details).HasColumnType("jsonb");
         builder.HasIndex(a => a.CreatedAt);
         builder.HasOne<User>().WithMany().HasForeignKey(a => a.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+{
+    public void Configure(EntityTypeBuilder<OutboxMessage> builder)
+    {
+        builder.ToTable("outbox_messages", table =>
+            table.HasCheckConstraint("ck_outbox_messages_attempts_non_negative", "attempts >= 0"));
+        builder.Property(m => m.Id).ValueGeneratedNever();
+        builder.Property(m => m.Type).HasMaxLength(100).IsRequired();
+        builder.Property(m => m.Payload).HasColumnType("jsonb").IsRequired();
+        builder.Property(m => m.TraceParent).HasMaxLength(100);
+        builder.Property(m => m.LastError).HasMaxLength(OutboxMessage.MaxErrorLength);
+        // Partial index: the publisher's query only ever looks at pending messages, which stay few even when
+        // millions of processed ones accumulate.
+        builder.HasIndex(m => m.NextAttemptAt)
+            .HasDatabaseName("ix_outbox_messages_pending")
+            .HasFilter("processed_at IS NULL AND dead_lettered_at IS NULL");
     }
 }

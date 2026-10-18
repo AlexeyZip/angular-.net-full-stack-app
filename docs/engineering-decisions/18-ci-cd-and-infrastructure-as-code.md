@@ -1,6 +1,6 @@
 # 18 — CI/CD and infrastructure as code
 
-**Status:** CI workflow written, not executed on GitHub (no Git remote), but every command in it passes locally.
+**Status:** CI workflow implemented and green on GitHub (first run: all three jobs passed).
 Containers built and verified with the full E2E suite through nginx. IaC: design.
 
 ## 1. Problem
@@ -69,6 +69,7 @@ integration tests plus a migration drift check, and Playwright E2E against a Pos
 variants."
 
 ## 16. Evidence
-Workflow syntax reviewed manually; the workflow itself never executed on GitHub. Its steps were run locally:
+GitHub Actions run 39149844984 on commit `e65cd54`: Backend, Frontend and E2E jobs succeeded. The same steps were
+also run locally:
 lint/test/builds, backend build + unit + integration tests, migration check, `nx e2e web-e2e` (46/46).
 Images: `docker compose --profile full build` ✅.

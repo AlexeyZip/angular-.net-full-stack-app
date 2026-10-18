@@ -1,14 +1,73 @@
 # Progress log
 
-## Current status (2026-10-18)
+## Current status (2026-10-18, end of session 3)
 
-**Phase:** 1–4 done; Phase 7 (final verification) done locally in session 2. Not yet run: the GitHub Actions
-workflow (no Git remote, D-02).
+**Phase:** 1–4 and 7 done; advanced items A-02, A-05, A-09, A-10 done (outbox, notifications microservice, AI
+assistant, assistant microfrontend in a side panel).
 
-The full application — API, both Angular state variants, admin portal, tests, Docker/CI configuration and the
-documentation set — is in the repository, and every local check passes: backend unit 42/42, integration 40/40
-(PostgreSQL 17), frontend unit 101/101, Playwright 46/46 (both variants) on the dev servers and against the Docker
-Compose stack.
+Local checks at the end of session 3: backend unit 88/88, integration 62/62 (PostgreSQL 17, Testcontainers),
+notifications 14/14, frontend unit 120/120 in 7 projects, lint 8 projects, production builds of `web`, `web-ngrx` and
+`assistant-mfe`, Playwright 50/50 (both variants, dev servers) twice in a row. **Session-3 work is not committed**
+(not requested); the last pushed commit is `e65cd54`, whose GitHub Actions run succeeded:
+<https://github.com/AlexeyZip/angular-.net-full-stack-app/actions/runs/39149844984>. CI has not run the session-3
+changes yet.
+
+## Session 3 — 2026-10-18 (advanced features, assistant as a chat, developer documentation)
+
+### Delivered
+
+- **Transactional outbox + notifications microservice** (A-02, A-09): `OutboxMessage` written in the checkout and
+  status-change transactions, `OutboxPublisher` (claim with `FOR UPDATE SKIP LOCKED` + lease, backoff, dead-letter),
+  `services/notifications` (own database, idempotent inbox, `X-Service-Key`), contract samples in
+  `services/contracts/events`. ADR-0012, guide `docs/guides/outbox-and-notifications-service.md`.
+- **AI assistant (RAG)** (A-05): rule-based parser, lexical retrieval with SQL filters, prompt with sanitized product
+  blocks, `IChatModel` (Mock default, OpenAI-compatible for a local Ollama `qwen2.5:7b`), citation filter, price guard,
+  timeouts / retry / circuit breaker, degraded mode. ADR-0013.
+- **Assistant microfrontend** (A-10): `apps/assistant-mfe` as the `<shop-assistant>` custom element, loaded at runtime
+  into a side panel on every page. ADR-0011.
+- **Chat format:** a scrollable conversation (`role="log"`), Enter to send, retry, "New conversation", example
+  questions; stateless follow-ups — the client sends at most 4 earlier turns as `{question, productIds}`, never answer
+  text; the server re-reads those products with the current filters.
+- **Overlay panel:** the panel is `position: fixed` above the page (no layout shift) with a slide/fade transition
+  (320 ms open, 280 ms close, off for `prefers-reduced-motion`); closed state is `visibility: hidden` + `inert`.
+- **Documentation for developers:** `docs/guides/` (assistant implementation walkthrough with trade-offs and a
+  build-it-yourself recipe, outbox guide, developer guide, design patterns and principles with code from the
+  repository — `docs/guides/design-patterns.md`), ADR-0011…0013, decisions 02/03/10/12/21/22 updated,
+  KI-16…KI-21, traceability and backlog updated, README updated.
+
+### Defects found and fixed in session 3
+
+- **Assistant retrieval cut off the best match** once a common word matched more than 40 products (the SQL candidate
+  order ignored how many terms matched). Fixed: candidates ordered by matched-term count; new IT fails on the old order
+  and passes on the new one.
+- **Flaky full E2E suite** with 8 local workers (KI-21): requests exceeded the 10 s expect timeout under load.
+  Playwright now uses 2 workers (`E2E_WORKERS` overrides).
+- Earlier in the session: XML doc `param` tags failed the build (CS1573 as error); an integration test collided with
+  other tests' "kettle" products; the widget's component styles exceeded the 4 kB budget — all fixed.
+
+### Commands executed and results (session 3, final state)
+
+| Command (working directory) | Result |
+| --- | --- |
+| `dotnet build Shop.sln` (`services/api`) | ✅ 0 errors (warnings are errors) |
+| `dotnet test --project tests/Shop.Api.UnitTests` | ✅ 88/88 |
+| `dotnet test --project tests/Shop.Api.IntegrationTests` | ✅ 62/62 |
+| new retrieval IT against the old ordering (temporary revert) | ❌ fails as expected → restored fix ✅ passes |
+| `dotnet test --project tests/Shop.Notifications.Tests` (`services/notifications`) | ✅ 14/14 |
+| `dotnet ef migrations has-pending-model-changes --project src/Shop.Notifications` | ✅ no changes |
+| `npx nx run-many -t lint test` | ✅ 8 projects lint; 120 tests (assistant-mfe 9, web 28, contracts 19, signals 15, ngrx 21, ui 13, data-access 15) |
+| `npx nx run web:build:production` / `production-ngrx` / `assistant-mfe:build:production` | ✅ initial 400.49 kB (107.60 kB transferred) / 444.56 kB (120.45 kB) / 215.88 kB (61.40 kB), no budget warnings |
+| `npx nx e2e web-e2e` with 8 workers (default before the fix) | ❌ 3/50, 4/18 (rerun of two specs), 2/50 failed — random journeys, request pending > 10 s |
+| `npx nx e2e web-e2e -- --project signals admin.spec.ts --workers=1` | ✅ 18/18 |
+| `npx nx e2e web-e2e -- --workers=2` | ✅ 50/50 (2.3 min) |
+| `npx nx e2e web-e2e` with the new default (2 workers) | ❌ assistant spec failed in both variants → retrieval defect above; after the fix ✅ 50/50 twice (2.2 and 2.3 min) |
+| Browser check on `http://localhost:4200` (dev server, Mock model) | ✅ `main` keeps its position (left 182.5 px, width 1200 px) when the panel opens; panel `position: fixed`, 420 px; transitions observed: open `transform 320ms cubic-bezier(0.16, 1, 0.3, 1)` + `opacity 200ms`, close `transform 280ms` + `opacity` + delayed `visibility` |
+| SQL log of `POST /api/assistant/ask` | ✅ `ORDER BY (SELECT count(*) FROM unnest(@patterns0) ...) DESC, ...` |
+| Manual run with Ollama `qwen2.5:7b` through compose (:8080), before the overlay change | ✅ chat with a follow-up question answered from the catalog |
+
+Not run in session 3: rebuild of the compose images `web` / `web-ngrx` (they still contain the pre-overlay panel), E2E
+against the compose stack, CI on the session-3 changes, A-07 accessibility audit, A-08 rate-limit test, external link
+check (KI-06).
 
 ## Session 2 — 2026-10-18 (Docker available)
 
@@ -61,8 +120,10 @@ The first database-backed runs found three real defects and four test-side races
 | `npx nx run-many -t lint test` | ✅ 7 projects lint; 101 tests (contracts 19, data-access 15, ui 13, signals 15, ngrx 21, web 18) |
 | `npx nx run web:build:production` / `production-ngrx` | ✅ both; Signals build contains 0 NgRx files |
 | `npx tsc -p apps/web-e2e/tsconfig.json` | ✅ |
+| `git push -u origin main` (user-provided remote, at the user's request) | ✅ |
+| GitHub Actions `CI` run 39149844984 on `e65cd54` | ✅ success: Backend, Frontend, E2E jobs |
 
-Not run: the GitHub Actions workflow (no remote), external link check (KI-06), automated accessibility audit (A-07),
+Not run: external link check (KI-06), automated accessibility audit (A-07),
 visual check of the dark theme, a test for the rate limits (A-08).
 
 ## Session 1 — 2026-10-18
@@ -140,16 +201,19 @@ See `KNOWN_ISSUES.md`. Session 1 was limited by KI-01 (no database; resolved in 
 
 ## Next task
 
-1. **D-02 — CI on GitHub:** needs a Git remote; ask the user before creating one or pushing.
-2. **A-07 — accessibility audit** (axe in Playwright) on catalog, product, cart, checkout and admin pages.
+1. **Commit and CI** for the session-3 work (only when the user asks), then rebuild the compose images
+   (`docker compose --profile full build web web-ngrx`) and re-run E2E against :8080/:8081.
+2. **A-07 — accessibility audit** (axe in Playwright) on catalog, product, cart, checkout, admin and the assistant panel.
 3. **A-08 — rate-limit integration test**; **DOC-06 — external link check** (KI-06).
-4. **ADR-0010 / A-02** — payment outside the transaction + outbox; **A-01** — OpenTelemetry.
+4. **ADR-0010** — payment outside the transaction (the outbox from A-02 is the building block); **A-01** — OpenTelemetry;
+   **A-11** — pgvector retrieval with an offline evaluation set.
 
 To re-run everything locally:
 
 ```powershell
 docker compose up -d postgres
 cd services/api; dotnet build Shop.sln; dotnet test --project tests/Shop.Api.UnitTests; dotnet test --project tests/Shop.Api.IntegrationTests; cd ../..
+cd services/notifications; dotnet test --project tests/Shop.Notifications.Tests; cd ../..
 npx nx run-many -t lint test; npx nx e2e web-e2e
 ```
 

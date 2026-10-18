@@ -11,12 +11,14 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Shop.Api.Domain;
 using Shop.Api.Features.Admin;
+using Shop.Api.Features.Assistant;
 using Shop.Api.Features.Auth;
 using Shop.Api.Features.Catalog;
 using Shop.Api.Features.Orders;
 using Shop.Api.Infrastructure.Audit;
 using Shop.Api.Infrastructure.Auth;
 using Shop.Api.Infrastructure.ErrorHandling;
+using Shop.Api.Infrastructure.Messaging;
 using Shop.Api.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -96,6 +98,8 @@ builder.Services.AddScoped<OrderStatusService>();
 builder.Services.AddScoped<AdminCatalogService>();
 builder.Services.AddScoped<AdminOrdersService>();
 builder.Services.AddScoped<DevelopmentSeeder>();
+builder.Services.AddShopAssistant(builder.Configuration);
+builder.Services.AddShopMessaging(builder.Configuration);
 
 // ---------- Health ----------
 builder.Services.AddHealthChecks().AddDbContextCheck<ShopDbContext>("database", tags: ["ready"]);

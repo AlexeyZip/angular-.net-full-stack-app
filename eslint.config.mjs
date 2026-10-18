@@ -36,6 +36,9 @@ export default [
           depConstraints: [
             { sourceTag: 'type:app', onlyDependOnLibsWithTags: ['type:ui', 'type:data-access', 'type:state-contracts', 'type:state-impl'] },
             { sourceTag: 'type:e2e', onlyDependOnLibsWithTags: [] },
+            // A microfrontend is built and deployed on its own: it shares only a DOM contract (element name,
+            // attributes, events) and CSS custom properties with the host, never code.
+            { sourceTag: 'type:remote', onlyDependOnLibsWithTags: [] },
             { sourceTag: 'type:state-impl', onlyDependOnLibsWithTags: ['type:state-contracts', 'type:data-access'] },
             { sourceTag: 'type:state-contracts', onlyDependOnLibsWithTags: ['type:data-access'] },
             { sourceTag: 'type:data-access', onlyDependOnLibsWithTags: [] },

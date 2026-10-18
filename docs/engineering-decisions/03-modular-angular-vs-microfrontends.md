@@ -55,9 +55,25 @@ Initial bundle (Signals) 396 kB raw / ~106 kB transferred; feature pages are sep
 Multiple teams owning distinct product areas with independent deploys, or integrating apps built with different
 frameworks. A migration would start by turning `features/admin` into a remote with Native Federation.
 
+## 14a. The one microfrontend that exists: the assistant
+The shop itself stays one app, but the AI assistant is a real remote (`apps/assistant-mfe`, ADR-0011): an Angular
+Elements custom element loaded at runtime into an overlay side panel on every page. It was chosen because it is
+optional for the shop, changes on its own cadence and needs a tiny contract (two attributes, one event) — the case
+where a microfrontend costs least. What it demonstrates:
+- runtime loading without a build-time dependency (`RemoteElementLoader`), recoverable failure, same-origin proxying
+  so the CSP stays `script-src 'self'`;
+- Shadow DOM isolation with theming through CSS custom properties;
+- a lint rule (`type:remote` may depend on nothing) so the remote cannot import the host's libraries;
+- validating events from another deployable.
+What it costs: a second Angular runtime on the page (KI-17), a second build/image/dev server. Walkthrough:
+`docs/guides/assistant-implementation.md` §5.
+
 ## 15. Interview explanation
 "One Angular app with lazy routes and Nx libraries whose dependency rules are lint-enforced. Microfrontends solve an
-organizational problem — independent teams and deploys — that this project doesn't have."
+organizational problem — independent teams and deploys — that this project doesn't have; I showed the technique on
+one optional widget, the assistant, as a custom element with a minimal DOM contract."
 
 ## 16. Evidence
-Builds and lint verified. Microfrontends: design only.
+Builds and lint verified. Assistant microfrontend verified on 2026-10-18: widget and host unit tests, production
+builds, Playwright `assistant.spec.ts` in both state variants (including the remote-down path), manual check
+through nginx. Federation-based splitting of the shop: design only.

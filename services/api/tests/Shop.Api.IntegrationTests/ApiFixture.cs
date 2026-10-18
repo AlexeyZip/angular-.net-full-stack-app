@@ -46,6 +46,7 @@ public sealed class ApiFixture : IAsyncLifetime
             builder.UseSetting("Database:SeedDevelopmentData", "true");
             builder.UseSetting("RateLimiting:AuthPermitLimit", "100000");
             builder.UseSetting("RateLimiting:CheckoutPermitLimit", "100000");
+            builder.UseSetting("RateLimiting:AssistantPermitLimit", "100000");
             builder.UseSetting("Logging:LogLevel:Default", "Warning");
         });
 
@@ -109,12 +110,12 @@ public sealed class ApiFixture : IAsyncLifetime
     }
 
     /// <summary>Creates an isolated product directly in the database so a test fully controls its stock.</summary>
-    public async Task<Product> CreateProductAsync(int stock, decimal price = 25.00m)
+    public async Task<Product> CreateProductAsync(int stock, decimal price = 25.00m, string? name = null)
     {
         await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
         var categoryId = await db.Categories.OrderBy(c => c.Id).Select(c => c.Id).FirstAsync();
-        var name = $"Test Product {Guid.NewGuid():N}";
+        name ??= $"Test Product {Guid.NewGuid():N}";
         var product = new Product(name, name, "Integration test product", "TestBrand", price, stock, categoryId, null, DateTimeOffset.UtcNow);
         db.Products.Add(product);
         await db.SaveChangesAsync();

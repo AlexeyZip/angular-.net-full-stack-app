@@ -1,0 +1,63 @@
+{
+  "name": "assistant-mfe",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "shop",
+  "sourceRoot": "apps/assistant-mfe/src",
+  "tags": ["type:remote"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/assistant-mfe",
+        "browser": "apps/assistant-mfe/src/main.ts",
+        "index": false,
+        "tsConfig": "apps/assistant-mfe/tsconfig.app.json",
+        "inlineStyleLanguage": "css"
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "250kb", "maximumError": "500kb" },
+            { "type": "anyComponentStyle", "maximumWarning": "4kb", "maximumError": "8kb" }
+          ],
+          "optimization": true,
+          "outputHashing": "none"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4400,
+        "servePath": "/mfe/assistant/",
+        "prebundle": false,
+        "hmr": false,
+        "liveReload": false
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "assistant-mfe:build:production"
+        },
+        "development": {
+          "buildTarget": "assistant-mfe:build:development"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false
+      }
+    }
+  }
+}

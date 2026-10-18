@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Shop.Api.Domain;
 using Shop.Api.Infrastructure.Audit;
+using Shop.Api.Infrastructure.Messaging;
 using Shop.Api.Infrastructure.Persistence;
 
 namespace Shop.Api.Features.Orders;
 
 /// <summary>Status changes for customers (cancel) and administrators (any valid transition).</summary>
-public sealed class OrderStatusService(ShopDbContext db, AuditLogger audit, OrderQueries queries, TimeProvider clock)
+public sealed class OrderStatusService(ShopDbContext db, AuditLogger audit, Outbox outbox, OrderQueries queries, TimeProvider clock)
 {
     public async Task<OrderDetailDto> CancelByCustomerAsync(Guid userId, Guid orderId, CancellationToken cancellationToken)
     {
@@ -46,6 +47,13 @@ public sealed class OrderStatusService(ShopDbContext db, AuditLogger audit, Orde
         {
             audit.Record(actor, "order.status_changed", "Order", order.Id, new { order.OrderNumber, from = previous, to = next });
         }
+
+        var customer = await db.Users.AsNoTracking()
+            .Where(u => u.Id == order.UserId)
+            .Select(u => new { u.Email, u.FullName })
+            .SingleAsync(cancellationToken);
+        outbox.Enqueue(IntegrationEventTypes.OrderStatusChanged, new OrderStatusChangedV1(
+            order.Id, order.OrderNumber, customer.Email, customer.FullName, previous.ToString(), next.ToString(), clock.GetUtcNow()));
 
         // Order.Version (xmin) makes a concurrent second cancellation fail instead of restocking twice.
         await db.SaveChangesAsync(cancellationToken);

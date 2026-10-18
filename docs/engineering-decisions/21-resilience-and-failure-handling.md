@@ -26,6 +26,10 @@ execution strategy (retry on transient DB errors); circuit breakers; outbox; aut
 | Storage unavailable | cart works in memory | `cart-persistence.ts` |
 | Client disconnect | `CancellationToken` everywhere; 499 not logged as error | `AppExceptionHandler.cs` |
 | DB down | readiness probe fails; error states with retry in the UI | `Program.cs`, `libs/shared/ui/src/lib/states.ts` |
+| Notifications service down / slow | checkout unaffected; outbox retries with backoff, dead-letters after 8 attempts or a permanent 4xx; consumer idempotent | `Infrastructure/Messaging/*`, `services/notifications` (ADR-0012) |
+| Crash between commit and delivery | event is in the same transaction as the order; claim lease expires and another tick delivers it | `OutboxProcessor.cs` |
+| Model server down / slow | attempt + total timeout, one retry for fast failures only, circuit breaker, `Degraded` answer with search results | `Features/Assistant/AssistantRegistration.cs`, `AssistantService.cs` |
+| Microfrontend unavailable | loader rejects after error/timeout; panel shows "unavailable" with retry; shop unaffected | `remote-element-loader.ts`, `assistant-panel.ts` |
 
 ## 5. Why
 Idempotency makes *client* retries safe, which is the retry that matters most on the web.
@@ -37,7 +41,8 @@ Idempotency makes *client* retries safe, which is the retry that matters most on
 - No EF Core retrying execution strategy: transient DB errors surface as 500. Adding `EnableRetryOnFailure()` requires
   wrapping explicit transactions in `db.Database.CreateExecutionStrategy().ExecuteAsync(...)` — planned with care
   because checkout must stay idempotent (it is, thanks to the key).
-- No circuit breaker around the (simulated) provider.
+- No circuit breaker around the (simulated) payment provider. Circuit breakers and resilience handlers exist for
+  the two real HTTP dependencies: the notifications service (outbox client) and the assistant's model server.
 
 ## 7. Simpler alternative
 Disable the button while submitting (done too) — but that alone does not protect against network-level retries.
@@ -77,5 +82,7 @@ failure code to a recovery action. The known gap is payment capture inside the t
 split authorize and capture around the commit and use an outbox."
 
 ## 16. Evidence
-Client-side behaviours verified by unit tests; server-side paths by integration tests (40/40); user-visible recovery
-paths by E2E (46/46).
+Client-side behaviours verified by unit tests; server-side paths by integration tests; user-visible recovery
+paths by E2E. Added on 2026-10-18: outbox retry/dead-letter/`SKIP LOCKED` integration tests and a manual outage run
+(notifications stopped → checkout 201 → delivered on attempt 4 after restart); assistant degraded mode (integration
+test with a failing model); remote-down E2E.

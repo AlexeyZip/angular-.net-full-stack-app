@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Shop.Api.Domain;
+using Shop.Api.Infrastructure.Messaging;
 using Shop.Api.Infrastructure.Persistence;
 
 namespace Shop.Api.Features.Orders;
@@ -16,6 +17,7 @@ public sealed record CheckoutResult(OrderDetailDto Order, bool Replayed);
 /// <item>All-or-nothing: stock changes, payment outcome and the order insert share one transaction.</item>
 /// <item>Retry safety: unique (user_id, idempotency_key) index; replays return the original order.</item>
 /// <item>Authoritative money: prices are read from the database and totals come from <see cref="Pricing"/>.</item>
+/// <item>Reliable notification: the OrderPlaced event is written to the outbox by the same commit as the order.</item>
 /// </list>
 /// See docs/engineering-decisions/08-database-transactions-and-concurrency.md.
 /// </summary>
@@ -23,6 +25,7 @@ public sealed class CheckoutService(
     ShopDbContext db,
     PaymentSimulator payments,
     OrderQueries queries,
+    Outbox outbox,
     TimeProvider clock,
     ILogger<CheckoutService> logger)
 {
@@ -131,6 +134,12 @@ public sealed class CheckoutService(
             now);
 
         db.Orders.Add(order);
+        var customer = await db.Users.AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.Email, u.FullName })
+            .SingleAsync(cancellationToken);
+        outbox.Enqueue(IntegrationEventTypes.OrderPlaced, new OrderPlacedV1(
+            order.Id, order.OrderNumber, customer.Email, customer.FullName, order.Total, "USD", items.Sum(i => i.Quantity), now));
         try
         {
             await db.SaveChangesAsync(cancellationToken);

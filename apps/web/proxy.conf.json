@@ -7,5 +7,9 @@
   "/health": {
     "target": "http://localhost:5080",
     "secure": false
+  },
+  "/mfe/assistant": {
+    "target": "http://localhost:4400",
+    "secure": false
   }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shop.Api.Domain;
+using Shop.Api.Infrastructure.Messaging;
 
 namespace Shop.Api.Infrastructure.Persistence;
 
@@ -18,6 +19,7 @@ public sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : DbC
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

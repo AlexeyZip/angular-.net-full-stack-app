@@ -7,12 +7,14 @@ import { App } from './app';
 import { provideAppState } from './state/state.providers';
 
 describe('App shell', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear();
     TestBed.configureTestingModule({
       imports: [App],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideAppState()],
     });
+    // The shell has a @defer block (assistant panel), whose dependencies resolve asynchronously.
+    await TestBed.compileComponents();
   });
 
   it('shows which state implementation is running and the live cart count', async () => {
@@ -40,5 +42,15 @@ describe('App shell', () => {
     expect(links).toContain('Sign in');
     expect(links).not.toContain('Admin');
     expect(links.some((text) => text?.startsWith('Orders'))).toBe(false);
+  });
+
+  it('does not load the assistant panel until the visitor opens it', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const toggle = Array.from(element.querySelectorAll<HTMLButtonElement>('nav button')).find((b) => b.textContent?.trim() === 'Assistant');
+
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(element.querySelector('shop-assistant-panel')).toBeNull();
   });
 });

@@ -4,7 +4,7 @@
   "projectType": "application",
   "sourceRoot": "apps/web-e2e/src",
   "tags": ["type:e2e"],
-  "implicitDependencies": ["web"],
+  "implicitDependencies": ["web", "assistant-mfe"],
   "targets": {
     "e2e": {
       "executor": "nx:run-commands",

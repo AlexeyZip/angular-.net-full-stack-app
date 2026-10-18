@@ -12,12 +12,15 @@ public sealed class RateLimitingOptions
     public TimeSpan AuthWindow { get; init; } = TimeSpan.FromMinutes(1);
     public int CheckoutPermitLimit { get; init; } = 10;
     public TimeSpan CheckoutWindow { get; init; } = TimeSpan.FromMinutes(1);
+    public int AssistantPermitLimit { get; init; } = 20;
+    public TimeSpan AssistantWindow { get; init; } = TimeSpan.FromMinutes(1);
 }
 
 public static class RateLimitPolicies
 {
     public const string Auth = "auth";
     public const string Checkout = "checkout";
+    public const string Assistant = "assistant";
 
     public static IServiceCollection AddShopRateLimiting(this IServiceCollection services)
     {
@@ -43,6 +46,15 @@ public static class RateLimitPolicies
                 return RateLimitPartition.GetFixedWindowLimiter(
                     context.User.FindFirst("sub")?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     _ => new FixedWindowRateLimiterOptions { PermitLimit = options.CheckoutPermitLimit, Window = options.CheckoutWindow });
+            });
+
+            // Anonymous endpoint whose calls may cost model time: per client IP.
+            limiter.AddPolicy(Assistant, context =>
+            {
+                var options = context.RequestServices.GetRequiredService<IOptions<RateLimitingOptions>>().Value;
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = options.AssistantPermitLimit, Window = options.AssistantWindow });
             });
         });
     }

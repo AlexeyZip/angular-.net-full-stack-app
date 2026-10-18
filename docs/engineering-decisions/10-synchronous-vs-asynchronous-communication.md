@@ -14,8 +14,9 @@ Everything is synchronous HTTP between SPA and API; inside the API, a checkout i
 including the simulated payment. Client-side asynchrony is RxJS (debounced quotes, cancellation, optimistic wishlist).
 
 ## 5. Why
-The user needs an immediate, definitive answer at checkout ("paid" or "declined"). There are no downstream consumers
-yet (no email, search index or warehouse) — asynchronous messaging would have no reader.
+The user needs an immediate, definitive answer at checkout ("paid" or "declined"). The one downstream consumer — the
+notifications service — must not be able to slow down or fail a checkout, so it is fed asynchronously through the
+outbox (§10).
 
 ## 6. Trade-offs
 Coupling to the payment call's latency and availability (a 503 aborts the checkout and the client may retry with the
@@ -31,13 +32,21 @@ response — loses work on crash.
 ## 9. References
 `OrdersController.cs`, `CheckoutService.cs`, `PaymentSimulator.cs`; client: `signals-cart.store.ts`, `cart.effects.ts`.
 
-## 10. Design for the asynchronous next step (A-02, not implemented)
+## 10. Asynchronous part (A-02, implemented 2026-10-18)
 ```text
-CheckoutService transaction:  INSERT orders ...;  INSERT outbox_messages(type='OrderPlaced', payload, created_at)
-                              COMMIT  (both or neither)
-OutboxPublisher (BackgroundService): SELECT ... FOR UPDATE SKIP LOCKED LIMIT 50 → publish → mark sent (retry with backoff)
-Consumers: email, search index, SignalR notifier — idempotent by message id
+CheckoutService / OrderStatusService:  order changes + INSERT outbox_messages(type='order.placed.v1', payload, traceparent)
+                                       one SaveChanges → COMMIT (both or neither)
+OutboxPublisher (BackgroundService):   claim: SELECT … FOR UPDATE SKIP LOCKED LIMIT 20 + lease, COMMIT
+                                       deliver outside the transaction → POST notifications /internal/events
+                                       processed | backoff 5 s·2^(n−1) ≤ 15 min | dead-letter (8 attempts or permanent 4xx)
+services/notifications:                inbox (PK message_id) + notification in one transaction → idempotent
 ```
+The customer-facing checkout is still synchronous (the answer must be definitive); only the side effect is
+asynchronous. Full guide: `docs/guides/outbox-and-notifications-service.md`; record: ADR-0012.
+
+The assistant is a third style: synchronous request/response to a slow dependency (a local model), protected with
+timeouts, a circuit breaker and a degraded answer instead of a queue — the user is waiting for the answer, so queueing
+it would not help (decision 12).
 
 ## 11. Failure scenarios
 Today: payment provider down → 503, nothing persisted. With an outbox: publish failures are retried; consumers must
@@ -56,8 +65,10 @@ Long-running or unreliable work (emails, fulfilment, search indexing), fan-out t
 consistency (sagas), and real-time UI updates (SignalR for order status, A-03).
 
 ## 15. Interview explanation
-"Checkout is synchronous because the customer needs a definitive answer and there are no consumers yet. The next step
-is a transactional outbox so that events like OrderPlaced are written in the same transaction and published reliably."
+"Checkout is synchronous because the customer needs a definitive answer. Side effects such as the confirmation e-mail
+go through a transactional outbox: the event is written in the same transaction as the order and delivered later,
+at least once, to an idempotent consumer."
 
 ## 16. Evidence
-Synchronous paths implemented; asynchronous parts are design only.
+Synchronous paths implemented. Outbox + notifications implemented and verified on 2026-10-18 (integration tests
+`OutboxTests`, notifications tests 14/14, manual outage-and-recovery run with compose). Broker, SignalR (A-03): design.

@@ -8,7 +8,7 @@ NgRx Store — behind one set of contracts, selected at build time. Both run the
 
 > **Status:** see [`docs/project/PROGRESS.md`](docs/project/PROGRESS.md) and
 > [`docs/project/REQUIREMENTS_TRACEABILITY.md`](docs/project/REQUIREMENTS_TRACEABILITY.md). All local checks
-> (unit, integration, E2E, Docker Compose) have been executed; the GitHub Actions workflow has not run yet (no remote) —
+> (unit, integration, E2E, Docker Compose) have been executed; GitHub Actions CI is green —
 > see [`KNOWN_ISSUES.md`](docs/project/KNOWN_ISSUES.md).
 
 ## Repository layout
@@ -17,6 +17,7 @@ NgRx Store — behind one set of contracts, selected at build time. Both run the
 .
 ├── apps/
 │   ├── web/                    Angular storefront + /admin portal (Nx project "web")
+│   ├── assistant-mfe/          AI assistant microfrontend: <shop-assistant> custom element (Nx project, type:remote)
 │   └── web-e2e/                Playwright end-to-end tests, run per state variant (Nx project "web-e2e")
 ├── libs/
 │   ├── shared/ui/              Presentational components, design tokens, themes         (type:ui)
@@ -29,10 +30,13 @@ NgRx Store — behind one set of contracts, selected at build time. Both run the
 │   ├── Shop.sln
 │   ├── src/Shop.Api/           ASP.NET Core API: Domain/, Features/<module>/, Infrastructure/
 │   └── tests/                  Shop.Api.UnitTests (no Docker), Shop.Api.IntegrationTests (real PostgreSQL)
+├── services/notifications/     Notifications microservice (own .sln and database), fed by the API's outbox
+├── services/contracts/         Integration event samples shared by producer and consumer tests
 ├── docs/
 │   ├── project/                Plan, backlog, progress, known issues, traceability
 │   ├── engineering-decisions/  Decision handbook (01–22)
 │   ├── adr/                    Architecture Decision Records
+│   ├── guides/                 Developer guide + implementation walkthroughs (assistant, outbox), design patterns
 │   └── learning/               Topic catalog with interview Q&A
 ├── docker-compose.yml          PostgreSQL (+ optional full stack profile)
 ├── .github/workflows/ci.yml    CI: frontend, backend, E2E
@@ -142,7 +146,9 @@ production deployment.
    `CheckoutService.cs` → PostgreSQL.
 3. [`04-signals-vs-rxjs-vs-ngrx.md`](docs/engineering-decisions/04-signals-vs-rxjs-vs-ngrx.md) — the same cart in two state libraries.
 4. [`08-database-transactions-and-concurrency.md`](docs/engineering-decisions/08-database-transactions-and-concurrency.md).
-5. [`docs/learning/README.md`](docs/learning/README.md) — topic index and interview questions.
+5. [`docs/guides/design-patterns.md`](docs/guides/design-patterns.md) — which design patterns and principles are
+   used where, with code from this repository.
+6. [`docs/learning/README.md`](docs/learning/README.md) — topic index and interview questions.
 
 ## Security notes
 

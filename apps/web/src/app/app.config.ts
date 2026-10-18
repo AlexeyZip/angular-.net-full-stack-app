@@ -4,6 +4,7 @@ import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from 
 import { AuthSession, authInterceptor } from '@shop/shared/data-access';
 import { firstValueFrom } from 'rxjs';
 import { appRoutes } from './app.routes';
+import { ASSISTANT_REMOTE } from './features/assistant/remote-element-loader';
 import { provideAppState } from './state/state.providers';
 
 // Zoneless change detection is the default in Angular 21: rendering is driven by signals,
@@ -17,5 +18,7 @@ export const appConfig: ApplicationConfig = {
     // Restore the session (refresh cookie -> access token) before the first navigation, so guards
     // see the real authentication state on a page reload.
     provideAppInitializer(() => firstValueFrom(inject(AuthSession).restore())),
+    // Where the assistant microfrontend is deployed; it is loaded the first time the side panel opens.
+    { provide: ASSISTANT_REMOTE, useValue: { scriptUrl: '/mfe/assistant/main.js', tagName: 'shop-assistant', timeoutMs: 10_000 } },
   ],
 };

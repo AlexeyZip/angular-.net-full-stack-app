@@ -1,0 +1,14 @@
+{
+  "messageId": "0199f6a1-2b3c-7d4e-8f90-a1b2c3d4e5f7",
+  "type": "order.status_changed.v1",
+  "occurredAt": "2026-10-19T09:30:00+00:00",
+  "payload": {
+    "orderId": "0199f6a1-0000-7000-8000-000000000001",
+    "orderNumber": "SO-20261018-A1B2C3D4",
+    "customerEmail": "customer@example.test",
+    "customerName": "Sample Customer",
+    "previousStatus": "Paid",
+    "status": "Shipped",
+    "changedAt": "2026-10-19T09:30:00+00:00"
+  }
+}

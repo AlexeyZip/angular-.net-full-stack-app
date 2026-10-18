@@ -51,7 +51,7 @@ Nx does not wrap .NET: the backend is built and tested with `dotnet` directly (a
 | 4 Quality | lint boundaries, E2E suite, a11y, Docker images, CI | 2, 3 | done except CI on GitHub and automated a11y (A-07) |
 | 5 Backend depth | observability, caching, outbox, performance checks | 2 | not started |
 | 6 Advanced (optional) | SignalR, microservices/microfrontend examples, AI/RAG, Azure IaC | 5 | design docs only |
-| 7 Final verification | run IT + E2E + compose, update all statuses | KI-01 resolved | done locally (session 2); CI pending a remote |
+| 7 Final verification | run IT + E2E + compose, update all statuses | KI-01 resolved | done (locally and in CI) |
 
 ## 5. Verification strategy
 
@@ -65,7 +65,7 @@ Nx does not wrap .NET: the backend is built and tested with `dotnet` directly (a
 ## 6. Known constraints
 
 - Docker was unavailable in session 1 (KI-01, resolved in session 2): IT, E2E and compose now run locally.
-- No Git remote: CI has never run.
+- CI runs on GitHub (`AlexeyZip/angular-.net-full-stack-app`); the first run was green.
 - No cloud resources or paid services may be provisioned without explicit approval.
 
 ## 7. Advanced topics — intended priority

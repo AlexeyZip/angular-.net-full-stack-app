@@ -9,6 +9,20 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "http-ollama": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Assistant__Provider": "OpenAiCompatible",
+        "Assistant__OpenAiCompatible__BaseUrl": "http://localhost:11434/v1",
+        "Assistant__OpenAiCompatible__Model": "qwen2.5:7b",
+        "Assistant__OpenAiCompatible__Timeout": "00:01:30",
+        "Assistant__OpenAiCompatible__WarmUpOnStart": "true"
+      }
     }
   }
 }

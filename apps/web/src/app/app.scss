@@ -58,7 +58,8 @@
     align-items: center;
     gap: var(--shop-space-4);
 
-    a {
+    a,
+    .nav-button {
       color: var(--shop-color-text);
       text-decoration: none;
       font-weight: 500;
@@ -68,6 +69,14 @@
       }
     }
   }
+}
+
+.nav-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }
 
 .count {

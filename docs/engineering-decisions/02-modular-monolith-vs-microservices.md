@@ -59,9 +59,23 @@ Several teams with independent release cycles; a module with very different scal
 regulatory isolation (payments/PCI). Extraction path: enforce module boundaries (separate `DbContext` per module or
 schema), introduce an outbox and integration events, then move one module out behind an API.
 
+## 14a. The one service that was extracted: notifications
+`services/notifications` is a real, separately deployed microservice — but for a side effect, not for a core module.
+It shows the extraction toolkit from §14 in practice: a transactional outbox in `Shop.Api`, versioned integration
+events, an idempotent consumer with its own database, service-to-service authentication and contract tests based on
+shared JSON samples. Checkout stays one ACID transaction: the outbox row is part of it, delivery happens later.
+Details: ADR-0012 and `docs/guides/outbox-and-notifications-service.md`.
+
+Why notifications and not Catalog or Orders: e-mail is naturally asynchronous, has no invariants shared with the
+order, and its failure must not fail a checkout — the ideal first candidate. Extracting Catalog would turn a local
+stock update into a distributed reservation saga.
+
 ## 15. Interview explanation
 "I built a modular monolith because checkout needs a single transaction; the feature folders are the future service
-boundaries, and I documented what extraction would require — an outbox, a reservation saga and contract tests."
+boundaries. To show what extraction really costs, I moved one side effect — notifications — into its own service
+with a transactional outbox, an idempotent inbox, its own database and contract tests."
 
 ## 16. Evidence
-Implemented; verified at runtime by integration tests (40/40) and E2E (46/46). Microservices: design only.
+Monolith verified by integration and E2E tests. Notifications service implemented and verified on 2026-10-18:
+API integration tests incl. `OutboxTests`, notifications tests 14/14, manual compose run (delivery, shared trace id,
+outage and recovery). Splitting the core modules: design only.

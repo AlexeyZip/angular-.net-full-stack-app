@@ -14,9 +14,10 @@ Maps each significant requirement of `MASTER-PROMPT.md` to code, tests, docs and
 
 Abbreviations: **UT** unit tests, **IT** integration tests (real PostgreSQL), **E2E** Playwright, **CT** state contract
 suite (`libs/state/contracts/src/testing/state-contract-suite.ts`, run against both variants).
-Last evidence run: 2026-10-18, session 2 (see `PROGRESS.md`): IT 40/40, backend UT 42/42, frontend UT 101/101,
-E2E 46/46 on the dev servers and 46/46 against the Docker Compose stack (nginx + production builds). Wherever a row
-names an IT or E2E test, that test was executed in this run.
+Last evidence run: 2026-10-18, session 3 (see `PROGRESS.md`): IT 62/62, backend UT 88/88, notifications 14/14,
+frontend UT 120/120, E2E 50/50 on the dev servers (run twice). The last run against the Docker Compose stack was in
+session 2 (46/46); the compose images were not rebuilt in session 3. Wherever a row names an IT or E2E test, that test
+was executed in the session-3 run.
 
 ## Repository and tooling
 
@@ -26,7 +27,7 @@ names an IT or E2E test, that test was executed in this run.
 | R-REPO-02 | Module boundaries enforced | `eslint.config.mjs` (`@nx/enforce-module-boundaries`, tags in `project.json`) | `npx nx run-many -t lint` (7 projects pass) | ADR-0002 | IMPLEMENTED_AND_VERIFIED |
 | R-REPO-03 | Docker Compose with PostgreSQL | `docker-compose.yml`, `.env.example` | `docker compose up -d postgres` ✅ (healthy); `--profile full up` ✅ (all services healthy) | `README.md` | IMPLEMENTED_AND_VERIFIED |
 | R-REPO-04 | Container images for API and web | `services/api/Dockerfile`, `apps/web/Dockerfile`, `apps/web/nginx.conf`, `nginx-security-headers.conf` | images built ✅; security headers present on HTML, assets and API responses ✅; E2E 46/46 through nginx ✅ | ADR-0009 | IMPLEMENTED_AND_VERIFIED |
-| R-REPO-05 | CI pipeline | `.github/workflows/ci.yml` | workflow not run (no remote); every command in it was executed locally and passes | `18-ci-cd-and-infrastructure-as-code.md` | IMPLEMENTED_NOT_FULLY_VERIFIED |
+| R-REPO-05 | CI pipeline | `.github/workflows/ci.yml` | GitHub Actions run 39149844984 on `e65cd54`: backend, frontend and E2E jobs green | `18-ci-cd-and-infrastructure-as-code.md` | IMPLEMENTED_AND_VERIFIED |
 | R-REPO-06 | AGENTS.md, Cursor rules, skills, agents | `AGENTS.md`, `.cursor/rules`, `.cursor/skills`, `.cursor/agents` | format reviewed manually | `docs/ai-workflow.md` | IMPLEMENTED_NOT_FULLY_VERIFIED |
 
 ## Storefront
@@ -96,17 +97,18 @@ names an IT or E2E test, that test was executed in this run.
 
 | ID | Requirement | Implementation | Verification | Status |
 | --- | --- | --- | --- | --- |
-| R-TEST-01 | Frontend unit tests (Vitest) | `*.spec.ts` in 6 projects | `npx nx run-many -t test`: 101 tests pass ✅ | IMPLEMENTED_AND_VERIFIED |
-| R-TEST-02 | Backend unit tests | `services/api/tests/Shop.Api.UnitTests` | `dotnet test --project tests/Shop.Api.UnitTests`: 42 pass ✅ | IMPLEMENTED_AND_VERIFIED |
-| R-TEST-03 | Backend integration tests with real PostgreSQL | `services/api/tests/Shop.Api.IntegrationTests` (Testcontainers) | `dotnet test --project tests/Shop.Api.IntegrationTests`: 40/40 ✅ | IMPLEMENTED_AND_VERIFIED |
-| R-TEST-04 | Playwright E2E for 13 journeys + failure paths, both variants | `apps/web-e2e/src/*.spec.ts` | 46/46 on dev servers ✅, 46/46 against compose ✅, `admin.spec.ts` ×3 repeat 54/54 ✅ | IMPLEMENTED_AND_VERIFIED |
+| R-TEST-01 | Frontend unit tests (Vitest) | `*.spec.ts` in 7 projects | `npx nx run-many -t test`: 120 tests pass ✅ (session 3) | IMPLEMENTED_AND_VERIFIED |
+| R-TEST-02 | Backend unit tests | `services/api/tests/Shop.Api.UnitTests`, `services/notifications/tests/Shop.Notifications.Tests` | 88 pass ✅; notifications 14 pass ✅ (session 3) | IMPLEMENTED_AND_VERIFIED |
+| R-TEST-03 | Backend integration tests with real PostgreSQL | `services/api/tests/Shop.Api.IntegrationTests` (Testcontainers) | `dotnet test --project tests/Shop.Api.IntegrationTests`: 62/62 ✅ (session 3) | IMPLEMENTED_AND_VERIFIED |
+| R-TEST-04 | Playwright E2E for 13 journeys + failure paths + assistant, both variants | `apps/web-e2e/src/*.spec.ts` | 50/50 on dev servers ✅ twice (session 3, 2 workers); against compose 46/46 ✅ (session 2, before the assistant specs) | IMPLEMENTED_AND_VERIFIED |
 
 ## Documentation
 
 | ID | Requirement | Location | Status |
 | --- | --- | --- | --- |
 | R-DOC-01 | Engineering decision handbook 01–22 | `docs/engineering-decisions/` (index in `README.md`) | IMPLEMENTED_AND_VERIFIED (all 22 present; code references checked with `rg`; design-only topics labelled as such) |
-| R-DOC-02 | ADRs | `docs/adr/` (0000 template, 0001–0009 accepted, 0010 proposed) | IMPLEMENTED_AND_VERIFIED (content reviewed against code) |
+| R-DOC-02 | ADRs | `docs/adr/` (0000 template, 0001–0009 and 0011–0013 accepted, 0010 proposed) | IMPLEMENTED_AND_VERIFIED (content reviewed against code) |
+| R-DOC-05 | Implementation guides for the advanced features and a developer guide | `docs/guides/` (assistant, outbox + notifications, developer guide) | IMPLEMENTED_AND_VERIFIED (file and symbol references checked against the code on 2026-10-18) |
 | R-DOC-03 | Learning catalogs (JS/TS, C#/.NET, Angular, ...) with interview Q&A | `docs/learning/` | IMPLEMENTED_NOT_FULLY_VERIFIED (repo references checked; external official links not checked, KI-06) |
 | R-DOC-04 | Tracking files | `docs/project/` | IMPLEMENTED_AND_VERIFIED |
 
@@ -114,10 +116,10 @@ names an IT or E2E test, that test was executed in this run.
 
 | ID | Topic | Status |
 | --- | --- | --- |
-| R-ADV-01 | Microservices example | OPTIONAL_NOT_IMPLEMENTED (design in `02-modular-monolith-vs-microservices.md`) |
-| R-ADV-02 | Microfrontends | OPTIONAL_NOT_IMPLEMENTED (design in `03-modular-angular-vs-microfrontends.md`) |
+| R-ADV-01 | Microservices example | IMPLEMENTED_AND_VERIFIED for one extracted service: `services/notifications` fed by a transactional outbox (ADR-0012, `docs/guides/outbox-and-notifications-service.md`). Evidence 2026-10-18: IT `OutboxTests`, UT `OutboxTests`/`EventContractTests`, notifications tests, manual compose run with outage and recovery. Core modules stay in the monolith by decision (02). |
+| R-ADV-02 | Microfrontends | IMPLEMENTED_AND_VERIFIED for one remote: `apps/assistant-mfe` loaded at runtime into the side panel (ADR-0011). Evidence 2026-10-18: widget UT 9/9, host UT, production build, E2E `assistant.spec.ts` 4/4 (both variants, incl. remote down). The shop itself is not split (03). |
 | R-ADV-03 | SignalR real-time updates | OPTIONAL_NOT_IMPLEMENTED |
-| R-ADV-04 | AI assistant / RAG | DESIGN_ONLY (`12-ai-integration-and-rag.md`) |
+| R-ADV-04 | AI assistant / RAG | IMPLEMENTED_AND_VERIFIED with lexical retrieval, Mock and a local model (qwen2.5:7b on Ollama), chat with follow-ups (ADR-0013, decision 12, `docs/guides/assistant-implementation.md`). Evidence 2026-10-18: UT `AssistantTests`, IT `AssistantApiTests`, E2E, manual real-model runs. pgvector retrieval: DESIGN_ONLY. No paid provider used. |
 | R-ADV-05 | Azure architecture / Bicep | DESIGN_ONLY (`15-cloud-and-azure-architecture.md`); no cloud resources were created |
 | R-ADV-06 | Distributed caching | DESIGN_ONLY (`13-caching-strategy.md`) |
 | R-ADV-07 | OpenTelemetry tracing/metrics export | OPTIONAL_NOT_IMPLEMENTED (structured JSON logs + health checks exist) |

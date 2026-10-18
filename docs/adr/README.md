@@ -19,6 +19,9 @@ Each ADR also has an **Implementation evidence** line, because "accepted" must n
 | [0008](0008-testing-approach.md) | Testing approach | accepted |
 | [0009](0009-local-development-environment.md) | Local development environment | accepted |
 | [0010](0010-payment-outside-the-order-transaction.md) | Move payment capture outside the order transaction | proposed |
+| [0011](0011-assistant-microfrontend-as-custom-element.md) | Assistant microfrontend as a runtime-loaded custom element in a side panel | accepted |
+| [0012](0012-outbox-and-notifications-service.md) | Transactional outbox and a separate notifications service | accepted |
+| [0013](0013-assistant-provider-abstraction-and-guardrails.md) | Assistant model behind one OpenAI-compatible adapter, with server-side guardrails | accepted |
 
 New ADRs: copy [`0000-template.md`](0000-template.md), take the next number, add a row here, and update the record
 whenever the implementation changes (superseding instead of silently rewriting history).

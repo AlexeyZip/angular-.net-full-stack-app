@@ -21,6 +21,17 @@
 
     <nav id="main-nav" class="header__nav" [class.header__nav--open]="menuOpen()" aria-label="Main">
       <a routerLink="/products" routerLinkActive="active" (click)="menuOpen.set(false)">Catalog</a>
+      <button
+        #assistantToggle
+        type="button"
+        class="nav-button"
+        [class.active]="assistantOpen()"
+        [attr.aria-expanded]="assistantOpen()"
+        aria-controls="assistant-panel"
+        (click)="toggleAssistant()"
+      >
+        Assistant
+      </button>
       @if (session.isAuthenticated()) {
         <a routerLink="/wishlist" routerLinkActive="active" (click)="menuOpen.set(false)">
           Wishlist <span class="count" data-testid="wishlist-count">{{ wishlist.count() }}</span>
@@ -54,5 +65,10 @@
     <span class="footer__variant" data-testid="state-variant">State: {{ stateVariant === 'ngrx' ? 'NgRx' : 'Signals' }}</span>
   </div>
 </footer>
+
+<!-- Neither the panel code nor the remote bundle is downloaded until the assistant is first opened. -->
+@defer (when assistantRequested()) {
+  <shop-assistant-panel [open]="assistantOpen()" (closed)="closeAssistant()" />
+}
 
 <shop-toast-outlet />
